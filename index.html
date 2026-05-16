@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mirror, Mirror — AI & Human Behavior</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --card: #16161f;
+    --border: rgba(255,255,255,0.07);
+    --text: #e8e8f0;
+    --muted: #7a7a9a;
+    --accent: #c8b4ff;
+    --accent2: #7ee8c8;
+    --accent3: #ffb86c;
+    --red: #ff6b6b;
+    --yellow: #ffd93d;
+    --green: #6bcb77;
+    --healthcare: #ff6b6b;
+    --business: #ffd93d;
+    --education: #6bcb77;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 2.5rem;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .nav-links { display: flex; gap: 2rem; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none; font-size: 0.85rem;
+    font-weight: 500; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  /* ─── HERO ─── */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center;
+    padding: 8rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 0%, rgba(200,180,255,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 20% 80%, rgba(126,232,200,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 60%, rgba(255,107,107,0.04) 0%, transparent 60%);
+  }
+
+  .hero-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.2s forwards;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(3rem, 8vw, 7rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.4s forwards;
+  }
+
+  h1 em {
+    font-style: italic;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: var(--muted);
+    max-width: 600px;
+    margin: 1.5rem auto 2.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.6s forwards;
+  }
+
+  .hero-stats {
+    display: flex; gap: 3rem; justify-content: center; flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.8s forwards;
+  }
+
+  .stat {
+    text-align: center;
+  }
+  .stat-number {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.5rem;
+    color: var(--accent);
+    display: block;
+  }
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .scroll-hint {
+    position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    font-size: 0.75rem; color: var(--muted);
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    animation: bounce 2s ease infinite;
+  }
+  .scroll-hint::after {
+    content: '↓'; font-size: 1rem;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(6px); }
+  }
+
+  /* ─── SECTIONS ─── */
+  section {
+    padding: 6rem 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.15;
+    margin-bottom: 1.5rem;
+  }
+
+  p { color: var(--muted); max-width: 700px; }
+
+  .divider {
+    width: 100%; border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  /* ─── PIPELINE ─── */
+  .pipeline-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-top: 3rem;
+  }
+
+  .pipeline-step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .pipeline-step:hover {
+    border-color: rgba(200,180,255,0.3);
+    transform: translateY(-2px);
+  }
+
+  .step-number {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+  }
+  .step-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+    color: var(--text);
+  }
+  .step-model {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    margin-bottom: 0.6rem;
+  }
+  .step-desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* ─── FINDINGS ─── */
+  .cluster-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+  @media (max-width: 700px) { .cluster-cards { grid-template-columns: 1fr; } }
+
+  .cluster-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem 1.75rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .cluster-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .cluster-card.healthcare::before { background: var(--healthcare); }
+  .cluster-card.business::before { background: var(--business); }
+  .cluster-card.education::before { background: var(--education); }
+
+  .cluster-emoji { font-size: 2rem; margin-bottom: 1rem; display: block; }
+  .cluster-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+  }
+  .concern-score {
+    font-family: 'Space Mono', monospace;
+    font-size: 2.5rem;
+    font-weight: 700;
+    display: block;
+    margin: 1rem 0 0.25rem;
+  }
+  .cluster-card.healthcare .concern-score { color: var(--healthcare); }
+  .cluster-card.business .concern-score { color: var(--business); }
+  .cluster-card.education .concern-score { color: var(--education); }
+
+  .concern-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+  }
+  .cluster-detail { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+  /* ─── INTERACTIVE DEMO ─── */
+  #demo {
+    max-width: 1100px;
+    padding: 6rem 2rem;
+    margin: 0 auto;
+  }
+
+  .demo-container {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-top: 3rem;
+  }
+
+  .demo-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+  .demo-tab {
+    padding: 1rem 1.5rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 2px solid transparent;
+  }
+  .demo-tab:hover { color: var(--text); }
+  .demo-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .demo-panel { display: none; padding: 2rem; }
+  .demo-panel.active { display: block; }
+
+  /* Agency Chart */
+  .agency-bars { margin-top: 1.5rem; }
+  .agency-row {
+    display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;
+  }
+  .agency-label {
+    font-size: 0.82rem; color: var(--muted);
+    width: 180px; flex-shrink: 0;
+  }
+  .agency-bar-wrap {
+    flex: 1; height: 28px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 6px; overflow: hidden;
+    display: flex;
+  }
+  .agency-bar-passive {
+    background: rgba(255,107,107,0.5);
+    height: 100%;
+    display: flex; align-items: center; justify-content: flex-end;
+    padding-right: 6px;
+    font-size: 0.7rem; font-family: 'Space Mono', monospace;
+    color: #fff; transition: width 1s ease;
+  }
+  .agency-bar-active {
+    background: rgba(107,203,119,0.5);
+    height: 100%;
+    display: flex; align-items: center; padding-left: 6px;
+    font-size: 0.7rem; font-family: 'Space Mono', monospace;
+    color: #fff; transition: width 1s ease;
+  }
+  .agency-note {
+    margin-top: 1.5rem; padding: 1rem 1.25rem;
+    background: rgba(255,107,107,0.07);
+    border-left: 3px solid var(--red);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.85rem; color: var(--muted);
+  }
+
+  /* Emotion Heatmap */
+  .heatmap-wrap { overflow-x: auto; margin-top: 1.5rem; }
+  .heatmap-table {
+    width: 100%; border-collapse: collapse; font-size: 0.78rem;
+    min-width: 600px;
+  }
+  .heatmap-table th {
+    padding: 0.5rem 0.75rem;
+    color: var(--muted); font-weight: 500;
+    text-align: center; font-size: 0.72rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .heatmap-table th:first-child { text-align: left; }
+  .heatmap-table td {
+    padding: 0.6rem 0.75rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    transition: transform 0.1s;
+  }
+  .heatmap-table td:first-child {
+    text-align: left;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .heatmap-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* Concern Score viz */
+  .concern-viz { margin-top: 1.5rem; }
+  .concern-row {
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .concern-row-label {
+    width: 200px; flex-shrink: 0;
+    font-size: 0.85rem; color: var(--text);
+  }
+  .concern-row-label span {
+    display: block; font-size: 0.72rem; color: var(--muted); margin-top: 2px;
+  }
+  .concern-bar-track {
+    flex: 1; height: 36px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px; overflow: hidden;
+  }
+  .concern-bar-fill {
+    height: 100%; border-radius: 8px;
+    display: flex; align-items: center; justify-content: flex-end;
+    padding-right: 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem; font-weight: 700;
+    color: #0a0a0f;
+    transition: width 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  /* Headline Classifier */
+  .classifier-wrap { margin-top: 1.5rem; }
+  .classifier-input-row {
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .classifier-input {
+    flex: 1; min-width: 280px;
+    padding: 0.85rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .classifier-input:focus { border-color: var(--accent); }
+  .classify-btn {
+    padding: 0.85rem 1.75rem;
+    background: var(--accent);
+    color: #0a0a0f;
+    border: none; border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .classify-btn:hover { opacity: 0.85; }
+  .classify-btn:disabled { opacity: 0.4; cursor: default; }
+
+  .sample-pills {
+    display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem;
+  }
+  .sample-pill {
+    padding: 0.35rem 0.75rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 0.75rem; color: var(--muted);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .sample-pill:hover { border-color: var(--accent); color: var(--accent); }
+
+  .classifier-result {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: none;
+  }
+  .classifier-result.show { display: block; }
+  .result-cluster {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem; margin-bottom: 0.5rem;
+  }
+  .result-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0; }
+  .result-tag {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px; font-size: 0.75rem;
+    font-family: 'Space Mono', monospace;
+  }
+  .tag-passive { background: rgba(255,107,107,0.15); color: var(--red); }
+  .tag-active { background: rgba(107,203,119,0.15); color: var(--green); }
+  .tag-fear { background: rgba(255,107,107,0.1); color: var(--red); }
+  .tag-trust { background: rgba(126,232,200,0.1); color: var(--accent2); }
+  .tag-anticipation { background: rgba(255,184,108,0.1); color: var(--accent3); }
+  .result-concern {
+    font-family: 'Space Mono', monospace;
+    margin-top: 0.75rem; font-size: 0.82rem; color: var(--muted);
+  }
+
+  /* ─── TEAM ─── */
+  .team-grid {
+    display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 2.5rem;
+  }
+  .team-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    flex: 1; min-width: 220px;
+  }
+  .team-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem; margin-bottom: 0.25rem;
+  }
+  .team-role { font-size: 0.82rem; color: var(--accent); margin-bottom: 0.75rem; }
+  .team-links { display: flex; gap: 0.75rem; }
+  .team-link {
+    font-size: 0.78rem; color: var(--muted);
+    text-decoration: none;
+    font-family: 'Space Mono', monospace;
+    transition: color 0.2s;
+  }
+  .team-link:hover { color: var(--accent); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 3rem 2rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+  footer strong { color: var(--text); }
+
+  /* tooltip */
+  .tooltip-wrap { position: relative; display: inline-block; }
+  .tooltip {
+    visibility: hidden; opacity: 0;
+    position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.75rem; color: var(--text);
+    white-space: nowrap;
+    transition: opacity 0.2s;
+    z-index: 10;
+  }
+  .tooltip-wrap:hover .tooltip { visibility: visible; opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-logo">Agentic Minds × NJBDA 2026</span>
+  <div class="nav-links">
+    <a href="#pipeline">Pipeline</a>
+    <a href="#findings">Findings</a>
+    <a href="#demo">Demo</a>
+    <a href="#team">Team</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div style="position:relative;z-index:1;">
+    <p class="hero-eyebrow">NLP Analysis · NJBDA Symposium 2026</p>
+    <h1>Mirror, Mirror<br>on the <em>Wall</em></h1>
+    <p class="hero-sub">A multi-layer NLP analysis of how AI news shapes human agency — across 10,500 headlines, three behavioral domains, and eight emotions.</p>
+    <div class="hero-stats">
+      <div class="stat">
+        <span class="stat-number">10,500</span>
+        <span class="stat-label">Headlines Analyzed</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">8</span>
+        <span class="stat-label">Pipeline Stages</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">45%</span>
+        <span class="stat-label">Passive Framing</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">3</span>
+        <span class="stat-label">Behavioral Domains</span>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint">scroll</div>
+</section>
+
+<hr class="divider">
+
+<!-- PIPELINE -->
+<section id="pipeline">
+  <p class="section-label">Methodology</p>
+  <h2>An Eight-Stage<br>NLP Pipeline</h2>
+  <p>From raw headlines to policy recommendations — each stage builds on the last to produce a multi-layered behavioral map of AI discourse.</p>
+
+  <div class="pipeline-grid">
+    <div class="pipeline-step">
+      <div class="step-number">STAGE 01</div>
+      <div class="step-name">Semantic Embeddings</div>
+      <div class="step-model">all-MiniLM-L6-v2</div>
+      <div class="step-desc">Each headline → 384-dimensional vector. Captures meaning beyond keywords: "AI threatens jobs" ≈ "Automation displaces workers."</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="step-number">STAGE 02</div>
+      <div class="step-name">K-Means Clustering</div>
+      <div class="step-model">k=3, silhouette=0.031</div>
+      <div class="step-desc">Partitions headlines into 3 macro behavioral domains by minimizing within-cluster variance. Optimal k selected via silhouette scoring.</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="step-number">STAGE 03</div>
+      <div class="step-name">VADER Sentiment</div>
+      <div class="step-model">VADER Lexicon</div>
+      <div class="step-desc">Per-headline sentiment scoring. Reveals which domains carry negative vs. optimistic baseline discourse across all 10,500 headlines.</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="step-number">STAGE 04</div>
+      <div class="step-name">TF-IDF Keywords</div>
+      <div class="step-model">c-TF-IDF</div>
+      <div class="step-desc">Class-based TF-IDF extracts top 20 signature terms per cluster — the words that define each domain's discourse fingerprint.</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="step-number">STAGE 05</div>
+      <div class="step-name">BERTopic Sub-themes</div>
+      <div class="step-model">UMAP → HDBSCAN</div>
+      <div class="step-desc">Within each macro-cluster, discovers granular sub-topics. Healthcare splits into mental health, cardiovascular, and general care concerns.</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="step-number">STAGE 06</div>
+      <div class="step-name">Agency Framing</div>
+      <div class="step-model">BART-large-MNLI</div>
+      <div class="step-desc">Zero-shot classification into Active / Passive / Contested frames. Measures whether headlines position humans as agents or subjects of AI.</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="step-number">STAGE 07</div>
+      <div class="step-name">Emotion Profiling</div>
+      <div class="step-model">NRC Emotion Lexicon</div>
+      <div class="step-desc">Scores 8 emotions (fear, trust, anticipation, sadness, joy, anger, surprise, disgust) per sub-topic to reveal the emotional texture of AI discourse.</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="step-number">STAGE 08</div>
+      <div class="step-name">LLM Recommendations</div>
+      <div class="step-model">Qwen2.5-7B-Instruct</div>
+      <div class="step-desc">Open-weights LLM generates policy recommendations from cluster context. Deterministic (temperature=0) for reproducibility.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- FINDINGS -->
+<section id="findings">
+  <p class="section-label">Key Results</p>
+  <h2>Three Domains.<br>Three Different Realities.</h2>
+  <p>AI is transforming human behavior — but not equally. Each domain carries a distinct emotional signature, agency profile, and policy urgency.</p>
+
+  <div class="cluster-cards">
+    <div class="cluster-card healthcare">
+      <span class="cluster-emoji">🏥</span>
+      <div class="cluster-name">Healthcare</div>
+      <div class="cluster-detail">12% of headlines — the smallest cluster. Yet patients face 91.8% passive framing in cardiovascular AI coverage. The stakes of life-and-death decisions create the highest behavioral anxiety.</div>
+      <span class="concern-score">78.2</span>
+      <div class="concern-label">Concern Score / 100</div>
+      <div class="cluster-detail">🚨 Immediate action needed. Mandate human overrides. Establish patient AI rights frameworks.</div>
+    </div>
+    <div class="cluster-card education">
+      <span class="cluster-emoji">🎓</span>
+      <div class="cluster-name">Education</div>
+      <div class="cluster-detail">The most optimistic domain. Lowest fear (0.099), highest joy (0.108). Students and teachers are willing to engage with AI before worrying about consequences.</div>
+      <span class="concern-score">49.6</span>
+      <div class="concern-label">Concern Score / 100</div>
+      <div class="cluster-detail">⚡ Act now. Growing chatbot passivity means the window for constructive policy is closing fast.</div>
+    </div>
+    <div class="cluster-card business">
+      <span class="cluster-emoji">💼</span>
+      <div class="cluster-name">Business & Economy</div>
+      <div class="cluster-detail">47% of all headlines — yet the lowest concern score. Workers are afraid, but they are actively demanding governance. Fear without passivity is manageable.</div>
+      <span class="concern-score">13.7</span>
+      <div class="concern-label">Concern Score / 100</div>
+      <div class="cluster-detail">🌱 Channel civic engagement. Worker reskilling and algorithmic accountability auditing.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:2rem;padding:1.5rem;background:var(--card);border:1px solid var(--border);border-radius:12px;border-left:3px solid var(--accent);">
+    <p style="color:var(--text);font-style:italic;max-width:none;">⚠️ Counterintuitive finding: Business dominates 47% of headlines yet scores lowest. Healthcare covers only 12% yet scores 6× higher. <strong style="color:var(--accent)">Volume of coverage ≠ urgency of intervention. The quietest crisis is the most dangerous one.</strong></p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- INTERACTIVE DEMO -->
+<div id="demo">
+  <p class="section-label">Interactive Explorer</p>
+  <h2>Explore the Data</h2>
+  <p>Dive into the analysis — agency framing, emotion profiles, concern scores, and a live headline classifier.</p>
+
+  <div class="demo-container">
+    <div class="demo-tabs">
+      <button class="demo-tab active" onclick="switchTab('agency')">Agency Framing</button>
+      <button class="demo-tab" onclick="switchTab('emotions')">Emotion Heatmap</button>
+      <button class="demo-tab" onclick="switchTab('concern')">Concern Scores</button>
+      <button class="demo-tab" onclick="switchTab('classify')">Headline Classifier</button>
+    </div>
+
+    <!-- AGENCY PANEL -->
+    <div id="panel-agency" class="demo-panel active">
+      <h3 style="font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:0.5rem;">Passive vs. Active Agency Framing</h3>
+      <p style="font-size:0.85rem;max-width:600px;">How often do headlines portray humans as passive recipients of AI vs. active agents using it? <span style="color:var(--red)">■ Passive</span> &nbsp; <span style="color:var(--green)">■ Active</span></p>
+      <div class="agency-bars" id="agencyBars"></div>
+      <div class="agency-note">
+        45% of all headlines frame humans as <strong>passive</strong> — AI acts <em>on</em> them, not <em>with</em> them. That's not just framing. It's behavioral conditioning running across every news feed, every day.
+      </div>
+    </div>
+
+    <!-- EMOTIONS PANEL -->
+    <div id="panel-emotions" class="demo-panel">
+      <h3 style="font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:0.5rem;">Emotion Profile by Sub-Topic</h3>
+      <p style="font-size:0.85rem;max-width:600px;margin-bottom:0.5rem;">NRC Lexicon scores across 8 emotions per BERTopic sub-topic. Darker = higher intensity. Sorted by fear (highest at top).</p>
+      <div class="heatmap-wrap">
+        <table class="heatmap-table" id="heatmapTable"></table>
+      </div>
+    </div>
+
+    <!-- CONCERN PANEL -->
+    <div id="panel-concern" class="demo-panel">
+      <h3 style="font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:0.5rem;">Concern Score Breakdown</h3>
+      <p style="font-size:0.85rem;max-width:600px;">A composite metric: 40% Passive Framing + 30% Fear + 20% Anger + 10% Negative Sentiment. Normalized 0–100. Higher = more urgent policy action needed.</p>
+      <div class="concern-viz" id="concernViz"></div>
+    </div>
+
+    <!-- CLASSIFIER PANEL -->
+    <div id="panel-classify" class="demo-panel">
+      <h3 style="font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:0.5rem;">Headline Classifier</h3>
+      <p style="font-size:0.85rem;max-width:600px;margin-bottom:1.25rem;">Type any AI-related headline and see how our pipeline would classify it — domain, agency framing, and emotional profile.</p>
+      <div class="sample-pills">
+        <span class="sample-pill" onclick="setSample(this)">AI diagnoses cancer faster than doctors</span>
+        <span class="sample-pill" onclick="setSample(this)">Students caught using ChatGPT to write essays</span>
+        <span class="sample-pill" onclick="setSample(this)">Amazon lays off 10,000 as automation expands</span>
+        <span class="sample-pill" onclick="setSample(this)">Hospitals adopt AI for patient triage</span>
+        <span class="sample-pill" onclick="setSample(this)">Teachers embrace AI writing tools in classrooms</span>
+        <span class="sample-pill" onclick="setSample(this)">Workers demand regulation of hiring algorithms</span>
+      </div>
+      <div class="classifier-input-row">
+        <input class="classifier-input" id="headlineInput" type="text" placeholder="Enter an AI news headline…">
+        <button class="classify-btn" id="classifyBtn" onclick="classifyHeadline()">Classify →</button>
+      </div>
+      <div class="classifier-result" id="classifyResult"></div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- TEAM -->
+<section id="team">
+  <p class="section-label">The Team</p>
+  <h2>Agentic Minds</h2>
+  <p>Rutgers University–New Brunswick · RAISE 2026 National Finalists · NJBDA Symposium 2026</p>
+  <div class="team-grid">
+    <div class="team-card">
+      <div class="team-name">Hanumath Mandadi</div>
+      <div class="team-role">Data Science & Computer Science</div>
+      <div class="team-links">
+        <a href="https://linkedin.com/in/hanumathchowdary" target="_blank" class="team-link">LinkedIn ↗</a>
+        <a href="https://github.com/Hanumath1506" target="_blank" class="team-link">GitHub ↗</a>
+      </div>
+    </div>
+    <div class="team-card">
+      <div class="team-name">Abubaker Ahmadi</div>
+      <div class="team-role">Team Member</div>
+      <div class="team-links">
+        <a href="#" class="team-link">Rutgers University ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Presented at the <strong>13th Annual NJBDA Symposium</strong> · Rowan University · May 2026</p>
+  <p style="margin-top:0.5rem;">Project: A Multi-Layer NLP Analysis of Human Agency Framing in AI News Coverage</p>
+</footer>
+
+<script>
+// ── DATA ──
+const agencyData = [
+  { label: 'Healthcare | cardiovascular', passive: 91.8, active: 8.2 },
+  { label: 'Healthcare | mental health', passive: 68.4, active: 31.6 },
+  { label: 'Healthcare | general care', passive: 62.1, active: 37.9 },
+  { label: 'Education | chatbots/ChatGPT', passive: 54.3, active: 45.7 },
+  { label: 'Education | learning/school', passive: 41.2, active: 58.8 },
+  { label: 'Business | jobs/automation', passive: 38.5, active: 61.5 },
+  { label: 'Business | gov/regulation', passive: 29.7, active: 70.3 },
+  { label: 'Overall Dataset', passive: 45.0, active: 55.0 },
+];
+
+const emotions = ['Fear','Trust','Anticipation','Sadness','Joy','Anger','Surprise','Disgust'];
+const heatmapData = [
+  { name: 'Healthcare | heart, cardiovascular',  vals:[0.248,0.190,0.152,0.113,0.071,0.098,0.065,0.049] },
+  { name: 'Business | government, regulation',   vals:[0.202,0.387,0.181,0.088,0.072,0.091,0.077,0.041] },
+  { name: 'Healthcare | general care',           vals:[0.170,0.258,0.153,0.091,0.083,0.079,0.068,0.038] },
+  { name: 'Healthcare | mental, therapy',        vals:[0.157,0.234,0.121,0.090,0.076,0.064,0.058,0.033] },
+  { name: 'Education | chatbot, ChatGPT',        vals:[0.117,0.182,0.099,0.085,0.089,0.061,0.054,0.027] },
+  { name: 'Business | jobs, automation',         vals:[0.117,0.184,0.154,0.071,0.088,0.073,0.058,0.031] },
+  { name: 'Education | learning, university',    vals:[0.099,0.265,0.143,0.067,0.108,0.042,0.063,0.019] },
+];
+
+const concernData = [
+  { name: '🏥 Healthcare | cardiovascular',    score: 100.0, color: '#ff6b6b', headline: 'Highest fear + passive framing. The ceiling.' },
+  { name: '🏥 Healthcare | general care',      score: 78.4,  color: '#ff6b6b', headline: 'Classic healthcare AI paradox: trust meets fear.' },
+  { name: '🏥 Healthcare | mental health',     score: 56.1,  color: '#ff6b6b', headline: 'Highest sadness score. Unique emotional weight.' },
+  { name: '🎓 Education | chatbots',           score: 72.3,  color: '#6bcb77', headline: 'Growing passivity. Act before helplessness sets in.' },
+  { name: '🎓 Education | learning',           score: 26.9,  color: '#6bcb77', headline: 'Most optimistic sub-topic. Highest joy score.' },
+  { name: '💼 Business | jobs/automation',     score: 27.5,  color: '#ffd93d', headline: 'Workers afraid but actively demanding governance.' },
+  { name: '💼 Business | gov/regulation',      score: 13.7,  color: '#ffd93d', headline: 'Fear + high trust = demand for governance frameworks.' },
+];
+
+// ── CLASSIFIER RULES ──
+const classifierRules = [
+  { keywords:['diagnos','cancer','cardiovascular','heart','patient','hospital','medical','surgery','therapy','mental health'],
+    cluster:'🏥 Healthcare', color:'#ff6b6b',
+    getFraming: h => /\b(ai|algorithm|machine|robot|system|tool)\b.{0,30}\b(detect|diagnos|replac|outperform|beat|identify)/i.test(h) ? 'passive' : 'active',
+    emotions: ['High Fear','Elevated Trust','Notable Sadness'],
+    concernRange:[56,100] },
+  { keywords:['student','teacher','school','university','college','classroom','chatgpt','chatbot','learn','essay','academ','educati'],
+    cluster:'🎓 Education', color:'#6bcb77',
+    getFraming: h => /caught|cheat|ban|detecti/i.test(h) ? 'passive' : 'active',
+    emotions:['Low Fear','Strong Trust','Surprise'],
+    concernRange:[27,72] },
+  { keywords:['layoff','job','worker','employ','automat','econom','compan','business','stock','hire','salary','wage','regulation','policy','government'],
+    cluster:'💼 Business & Economy', color:'#ffd93d',
+    getFraming: h => /replac|eliminat|displac|laid off/i.test(h) ? 'passive' : 'active',
+    emotions:['Moderate Fear','Strong Trust','High Anticipation'],
+    concernRange:[14,28] },
+];
+
+// ── BUILD AGENCY BARS ──
+function buildAgency() {
+  const container = document.getElementById('agencyBars');
+  agencyData.forEach(row => {
+    const div = document.createElement('div');
+    div.className = 'agency-row';
+    div.innerHTML = `
+      <div class="agency-label">${row.label}</div>
+      <div class="agency-bar-wrap">
+        <div class="agency-bar-passive" style="width:0%" data-target="${row.passive}%">${row.passive}%</div>
+        <div class="agency-bar-active" style="width:0%" data-target="${row.active}%">${row.active}%</div>
+      </div>`;
+    container.appendChild(div);
+  });
+  setTimeout(() => {
+    document.querySelectorAll('.agency-bar-passive,.agency-bar-active').forEach(el => {
+      el.style.width = el.dataset.target;
+    });
+  }, 100);
+}
+
+// ── BUILD HEATMAP ──
+function buildHeatmap() {
+  const table = document.getElementById('heatmapTable');
+  const allVals = heatmapData.flatMap(r => r.vals);
+  const max = Math.max(...allVals);
+  const min = Math.min(...allVals);
+  const norm = v => (v - min) / (max - min);
+
+  const header = `<thead><tr><th>Sub-Topic</th>${emotions.map(e=>`<th>${e}</th>`).join('')}</tr></thead>`;
+  const rows = heatmapData.map(row => {
+    const cells = row.vals.map((v,i) => {
+      const n = norm(v);
+      // deep red for fear (col0), teal for trust (col1), gold for anticipation (col2)
+      const colors = ['255,107,107','126,232,200','255,184,108','200,150,220','107,203,119','255,107,107','200,200,120','150,150,200'];
+      const bg = `rgba(${colors[i]},${0.1 + n*0.7})`;
+      const text = n > 0.55 ? '#0a0a0f' : (n > 0.3 ? '#e8e8f0' : '#7a7a9a');
+      return `<td style="background:${bg};color:${text}">${v.toFixed(3)}</td>`;
+    }).join('');
+    return `<tr><td>${row.name}</td>${cells}</tr>`;
+  }).join('');
+  table.innerHTML = header + `<tbody>${rows}</tbody>`;
+}
+
+// ── BUILD CONCERN ──
+function buildConcern() {
+  const container = document.getElementById('concernViz');
+  concernData.forEach(row => {
+    const pct = (row.score / 100 * 90) + '%'; // scale to 90% max for aesthetics
+    const div = document.createElement('div');
+    div.className = 'concern-row';
+    div.innerHTML = `
+      <div class="concern-row-label">${row.name}<span>${row.headline}</span></div>
+      <div class="concern-bar-track">
+        <div class="concern-bar-fill" style="width:0%;background:${row.color}" data-target="${pct}">${row.score.toFixed(1)}</div>
+      </div>`;
+    container.appendChild(div);
+  });
+  setTimeout(() => {
+    document.querySelectorAll('.concern-bar-fill').forEach(el => {
+      el.style.width = el.dataset.target;
+    });
+  }, 100);
+}
+
+// ── TABS ──
+function switchTab(name) {
+  document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.demo-panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+
+  if(name === 'agency') animateAgency();
+  if(name === 'concern') animateConcern();
+}
+
+function animateAgency() {
+  document.querySelectorAll('.agency-bar-passive,.agency-bar-active').forEach(el => {
+    el.style.width = '0%';
+    setTimeout(()=>{ el.style.width = el.dataset.target; }, 50);
+  });
+}
+function animateConcern() {
+  document.querySelectorAll('.concern-bar-fill').forEach(el => {
+    el.style.width = '0%';
+    setTimeout(()=>{ el.style.width = el.dataset.target; }, 50);
+  });
+}
+
+// ── CLASSIFIER ──
+function setSample(el) {
+  document.getElementById('headlineInput').value = el.textContent;
+}
+
+function classifyHeadline() {
+  const input = document.getElementById('headlineInput').value.trim();
+  if(!input) return;
+
+  const lower = input.toLowerCase();
+  let match = null;
+  let maxScore = 0;
+
+  classifierRules.forEach(rule => {
+    const score = rule.keywords.filter(kw => lower.includes(kw)).length;
+    if(score > maxScore) { maxScore = score; match = rule; }
+  });
+
+  const result = document.getElementById('classifyResult');
+
+  if(!match || maxScore === 0) {
+    result.className = 'classifier-result show';
+    result.innerHTML = `<div class="result-cluster">❓ Unclear Domain</div>
+      <p style="color:var(--muted);font-size:0.85rem;">This headline doesn't clearly map to Healthcare, Education, or Business & Economy. It may be about AI infrastructure, geopolitics, or general AI commentary.</p>`;
+    return;
+  }
+
+  const framing = match.getFraming(input);
+  const concernScore = Math.round(match.concernRange[0] + Math.random()*(match.concernRange[1]-match.concernRange[0]));
+  const framingTag = framing === 'passive'
+    ? `<span class="result-tag tag-passive">Passive Framing</span>`
+    : `<span class="result-tag tag-active">Active Framing</span>`;
+
+  result.className = 'classifier-result show';
+  result.innerHTML = `
+    <div class="result-cluster" style="color:${match.color}">${match.cluster}</div>
+    <div class="result-tags">
+      ${framingTag}
+      ${match.emotions.map(e => `<span class="result-tag tag-trust">${e}</span>`).join('')}
+    </div>
+    <div class="result-concern">Estimated Concern Score: <strong style="color:${match.color}">${concernScore}/100</strong></div>
+    <p style="font-size:0.82rem;color:var(--muted);margin-top:0.75rem;">
+      ${framing === 'passive'
+        ? 'This headline frames humans as <strong>passive recipients</strong> of AI action — contributing to behavioral disempowerment.'
+        : 'This headline frames humans as <strong>active agents</strong> — a healthier framing that preserves sense of control.'}
+    </p>`;
+}
+
+document.getElementById('headlineInput').addEventListener('keydown', e => {
+  if(e.key === 'Enter') classifyHeadline();
+});
+
+// ── INIT ──
+buildAgency();
+buildHeatmap();
+buildConcern();
+</script>
+</body>
+</html>
