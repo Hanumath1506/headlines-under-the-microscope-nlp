@@ -6,6 +6,7 @@
 <title>Mirror, Mirror — AI & Human Behavior</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #0a0a0f;
@@ -543,6 +544,37 @@
     z-index: 10;
   }
   .tooltip-wrap:hover .tooltip { visibility: visible; opacity: 1; }
+
+  /* ─── CHARTS ─── */
+  .chart-wrap-tall { position: relative; height: 380px; }
+  .chart-wrap-md   { position: relative; height: 300px; }
+
+  .radar-toggles { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+  .radar-toggle {
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .radar-toggle.on { border-color: currentColor; background: rgba(200,180,255,0.08); }
+
+  .overview-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 1.5rem;
+  }
+  @media (max-width: 700px) { .overview-grid { grid-template-columns: 1fr; } }
+  .overview-chart-box h4 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+    color: var(--text);
+  }
 </style>
 </head>
 <body>
@@ -701,14 +733,15 @@
       <button class="demo-tab" onclick="switchTab('emotions')">Emotion Heatmap</button>
       <button class="demo-tab" onclick="switchTab('concern')">Concern Scores</button>
       <button class="demo-tab" onclick="switchTab('classify')">Headline Classifier</button>
+      <button class="demo-tab" onclick="switchTab('overview')">Overview</button>
     </div>
 
     <!-- AGENCY PANEL -->
     <div id="panel-agency" class="demo-panel active">
       <h3 style="font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:0.5rem;">Passive vs. Active Agency Framing</h3>
-      <p style="font-size:0.85rem;max-width:600px;">How often do headlines portray humans as passive recipients of AI vs. active agents using it? <span style="color:var(--red)">■ Passive</span> &nbsp; <span style="color:var(--green)">■ Active</span></p>
-      <div class="agency-bars" id="agencyBars"></div>
-      <div class="agency-note">
+      <p style="font-size:0.85rem;max-width:600px;">How often do headlines portray humans as passive recipients of AI vs. active agents using it? Hover bars for exact values.</p>
+      <div class="chart-wrap-tall" style="margin-top:1.5rem;"><canvas id="agencyChart"></canvas></div>
+      <div class="agency-note" style="margin-top:1.5rem;">
         45% of all headlines frame humans as <strong>passive</strong> — AI acts <em>on</em> them, not <em>with</em> them. That's not just framing. It's behavioral conditioning running across every news feed, every day.
       </div>
     </div>
@@ -720,13 +753,18 @@
       <div class="heatmap-wrap">
         <table class="heatmap-table" id="heatmapTable"></table>
       </div>
+      <div style="margin-top:2rem;">
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.75rem;">Radar comparison — toggle sub-topics to overlay profiles:</p>
+        <div class="radar-toggles" id="radarToggles"></div>
+        <div class="chart-wrap-md"><canvas id="emotionRadar"></canvas></div>
+      </div>
     </div>
 
     <!-- CONCERN PANEL -->
     <div id="panel-concern" class="demo-panel">
       <h3 style="font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:0.5rem;">Concern Score Breakdown</h3>
       <p style="font-size:0.85rem;max-width:600px;">A composite metric: 40% Passive Framing + 30% Fear + 20% Anger + 10% Negative Sentiment. Normalized 0–100. Higher = more urgent policy action needed.</p>
-      <div class="concern-viz" id="concernViz"></div>
+      <div class="chart-wrap-tall" style="margin-top:1.5rem;"><canvas id="concernChart"></canvas></div>
     </div>
 
     <!-- CLASSIFIER PANEL -->
@@ -747,6 +785,24 @@
       </div>
       <div class="classifier-result" id="classifyResult"></div>
     </div>
+
+    <!-- OVERVIEW PANEL -->
+    <div id="panel-overview" class="demo-panel">
+      <h3 style="font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:0.5rem;">At a Glance</h3>
+      <p style="font-size:0.85rem;max-width:700px;">Headline distribution across domains and the relationship between passive framing and concern score per sub-topic.</p>
+      <div class="overview-grid">
+        <div class="overview-chart-box">
+          <h4>Headline Distribution</h4>
+          <p style="font-size:0.78rem;max-width:none;margin-bottom:0.75rem;">Share of 10,500 headlines by behavioral domain.</p>
+          <div class="chart-wrap-md"><canvas id="donutChart"></canvas></div>
+        </div>
+        <div class="overview-chart-box">
+          <h4>Passive Framing vs. Concern Score</h4>
+          <p style="font-size:0.78rem;max-width:none;margin-bottom:0.75rem;">Each point is a sub-topic. X = passive framing %, Y = concern score. Hover for details.</p>
+          <div class="chart-wrap-md"><canvas id="scatterChart"></canvas></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -754,15 +810,15 @@
 
 <!-- TEAM -->
 <section id="team">
-  <p class="section-label">The Team</p>
+  <p class="section-label">Our Team</p>
   <h2>Agentic Minds</h2>
   <p>Rutgers University–New Brunswick · RAISE 2026 National Finalists · NJBDA Symposium 2026</p>
   <div class="team-grid">
     <div class="team-card">
       <div class="team-name">Hanumath Mandadi</div>
       <div class="team-role">Data Science & Computer Science</div>
+      <div class="school">Rutgers University</div>
       <div class="team-links">
-        <a href="#" class="team-link">Rutgers University ↗</a>
         <a href="https://linkedin.com/in/hanumathchowdary" target="_blank" class="team-link">LinkedIn ↗</a>
         <a href="https://github.com/Hanumath1506" target="_blank" class="team-link">GitHub ↗</a>
       </div>
@@ -770,9 +826,10 @@
     <div class="team-card">
       <div class="team-name">Abubaker Ahmadi</div>
       <div class="team-role">Computer Science</div>
+      <div class="school">Mercer County Community College</div>
       <div class="team-links">
-        <a href="#" class="team-link">Mercer County Community College ↗</a>
         <a href="https://www.linkedin.com/in/abubakerahmadi/" target="_blank" class="team-link">LinkedIn ↗</a>
+        <a href="https://github.com/ahmadiabubaker" target="_blank" class="team-link">GitHub ↗</a>
       </div>
     </div>
   </div>
@@ -784,40 +841,336 @@
 </footer>
 
 <script>
+// ── CHART.JS GLOBALS ──
+Chart.defaults.color = '#7a7a9a';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+
 // ── DATA ──
 const agencyData = [
   { label: 'Healthcare | cardiovascular', passive: 91.8, active: 8.2 },
-  { label: 'Healthcare | mental health', passive: 68.4, active: 31.6 },
-  { label: 'Healthcare | general care', passive: 62.1, active: 37.9 },
-  { label: 'Education | chatbots/ChatGPT', passive: 54.3, active: 45.7 },
+  { label: 'Healthcare | mental health',  passive: 68.4, active: 31.6 },
+  { label: 'Healthcare | general care',   passive: 62.1, active: 37.9 },
+  { label: 'Education | chatbots/ChatGPT',passive: 54.3, active: 45.7 },
   { label: 'Education | learning/school', passive: 41.2, active: 58.8 },
-  { label: 'Business | jobs/automation', passive: 38.5, active: 61.5 },
-  { label: 'Business | gov/regulation', passive: 29.7, active: 70.3 },
-  { label: 'Overall Dataset', passive: 45.0, active: 55.0 },
+  { label: 'Business | jobs/automation',  passive: 38.5, active: 61.5 },
+  { label: 'Business | gov/regulation',   passive: 29.7, active: 70.3 },
+  { label: 'Overall Dataset',             passive: 45.0, active: 55.0 },
 ];
 
 const emotions = ['Fear','Trust','Anticipation','Sadness','Joy','Anger','Surprise','Disgust'];
 const heatmapData = [
-  { name: 'Healthcare | heart, cardiovascular',  vals:[0.248,0.190,0.152,0.113,0.071,0.098,0.065,0.049] },
-  { name: 'Business | government, regulation',   vals:[0.202,0.387,0.181,0.088,0.072,0.091,0.077,0.041] },
-  { name: 'Healthcare | general care',           vals:[0.170,0.258,0.153,0.091,0.083,0.079,0.068,0.038] },
-  { name: 'Healthcare | mental, therapy',        vals:[0.157,0.234,0.121,0.090,0.076,0.064,0.058,0.033] },
-  { name: 'Education | chatbot, ChatGPT',        vals:[0.117,0.182,0.099,0.085,0.089,0.061,0.054,0.027] },
-  { name: 'Business | jobs, automation',         vals:[0.117,0.184,0.154,0.071,0.088,0.073,0.058,0.031] },
-  { name: 'Education | learning, university',    vals:[0.099,0.265,0.143,0.067,0.108,0.042,0.063,0.019] },
+  { name: 'Healthcare | heart, cardiovascular', vals:[0.248,0.190,0.152,0.113,0.071,0.098,0.065,0.049] },
+  { name: 'Business | government, regulation',  vals:[0.202,0.387,0.181,0.088,0.072,0.091,0.077,0.041] },
+  { name: 'Healthcare | general care',          vals:[0.170,0.258,0.153,0.091,0.083,0.079,0.068,0.038] },
+  { name: 'Healthcare | mental, therapy',       vals:[0.157,0.234,0.121,0.090,0.076,0.064,0.058,0.033] },
+  { name: 'Education | chatbot, ChatGPT',       vals:[0.117,0.182,0.099,0.085,0.089,0.061,0.054,0.027] },
+  { name: 'Business | jobs, automation',        vals:[0.117,0.184,0.154,0.071,0.088,0.073,0.058,0.031] },
+  { name: 'Education | learning, university',   vals:[0.099,0.265,0.143,0.067,0.108,0.042,0.063,0.019] },
 ];
 
 const concernData = [
-  { name: '🏥 Healthcare | cardiovascular',    score: 100.0, color: '#ff6b6b', headline: 'Highest fear + passive framing. The ceiling.' },
-  { name: '🏥 Healthcare | general care',      score: 78.4,  color: '#ff6b6b', headline: 'Classic healthcare AI paradox: trust meets fear.' },
-  { name: '🏥 Healthcare | mental health',     score: 56.1,  color: '#ff6b6b', headline: 'Highest sadness score. Unique emotional weight.' },
-  { name: '🎓 Education | chatbots',           score: 72.3,  color: '#6bcb77', headline: 'Growing passivity. Act before helplessness sets in.' },
-  { name: '🎓 Education | learning',           score: 26.9,  color: '#6bcb77', headline: 'Most optimistic sub-topic. Highest joy score.' },
-  { name: '💼 Business | jobs/automation',     score: 27.5,  color: '#ffd93d', headline: 'Workers afraid but actively demanding governance.' },
-  { name: '💼 Business | gov/regulation',      score: 13.7,  color: '#ffd93d', headline: 'Fear + high trust = demand for governance frameworks.' },
+  { name: 'Healthcare | cardiovascular', score: 100.0, color: '#ff6b6b', headline: 'Highest fear + passive framing. The ceiling.' },
+  { name: 'Healthcare | general care',   score: 78.4,  color: '#ff6b6b', headline: 'Classic healthcare AI paradox: trust meets fear.' },
+  { name: 'Education | chatbots',        score: 72.3,  color: '#6bcb77', headline: 'Growing passivity. Act before helplessness sets in.' },
+  { name: 'Healthcare | mental health',  score: 56.1,  color: '#ff6b6b', headline: 'Highest sadness score. Unique emotional weight.' },
+  { name: 'Business | jobs/automation',  score: 27.5,  color: '#ffd93d', headline: 'Workers afraid but actively demanding governance.' },
+  { name: 'Education | learning',        score: 26.9,  color: '#6bcb77', headline: 'Most optimistic sub-topic. Highest joy score.' },
+  { name: 'Business | gov/regulation',   score: 13.7,  color: '#ffd93d', headline: 'Fear + high trust = demand for governance frameworks.' },
 ];
 
-// ── CLASSIFIER RULES ──
+// ── RADAR PALETTE ──
+const radarPalette = [
+  ['rgba(255,107,107,0.25)', '#ff6b6b'],
+  ['rgba(255,184,108,0.25)', '#ffb86c'],
+  ['rgba(255,130,130,0.2)',  '#ff9999'],
+  ['rgba(200,180,255,0.25)', '#c8b4ff'],
+  ['rgba(107,203,119,0.25)', '#6bcb77'],
+  ['rgba(126,232,200,0.25)', '#7ee8c8'],
+  ['rgba(200,200,120,0.25)', '#c8c878'],
+];
+
+// ── CHART INSTANCES ──
+let agencyChart, emotionRadarChart, concernChart, donutChart, scatterChart;
+let activeRadarIndices = [0, 2, 4];
+
+// ── AGENCY CHART ──
+function buildAgency() {
+  agencyChart = new Chart(document.getElementById('agencyChart'), {
+    type: 'bar',
+    data: {
+      labels: agencyData.map(d => d.label),
+      datasets: [
+        {
+          label: 'Passive Framing %',
+          data: agencyData.map(d => d.passive),
+          backgroundColor: 'rgba(255,107,107,0.55)',
+          borderColor: '#ff6b6b',
+          borderWidth: 1,
+          borderRadius: 3,
+        },
+        {
+          label: 'Active Framing %',
+          data: agencyData.map(d => d.active),
+          backgroundColor: 'rgba(107,203,119,0.55)',
+          borderColor: '#6bcb77',
+          borderWidth: 1,
+          borderRadius: 3,
+        }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          stacked: true, max: 100,
+          ticks: { callback: v => v + '%' },
+          grid: { color: 'rgba(255,255,255,0.05)' }
+        },
+        y: {
+          stacked: true,
+          grid: { display: false },
+          ticks: { font: { size: 11 } }
+        }
+      },
+      plugins: {
+        legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'rect', padding: 16 } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.x}%` } }
+      }
+    }
+  });
+}
+
+// ── HEATMAP TABLE ──
+function buildHeatmap() {
+  const table = document.getElementById('heatmapTable');
+  const allVals = heatmapData.flatMap(r => r.vals);
+  const max = Math.max(...allVals), min = Math.min(...allVals);
+  const norm = v => (v - min) / (max - min);
+  const colorChannels = ['255,107,107','126,232,200','255,184,108','200,150,220','107,203,119','255,107,107','200,200,120','150,150,200'];
+
+  const header = `<thead><tr><th>Sub-Topic</th>${emotions.map(e=>`<th>${e}</th>`).join('')}</tr></thead>`;
+  const rows = heatmapData.map(row => {
+    const cells = row.vals.map((v,i) => {
+      const n = norm(v);
+      const bg = `rgba(${colorChannels[i]},${0.1 + n*0.7})`;
+      const text = n > 0.55 ? '#0a0a0f' : (n > 0.3 ? '#e8e8f0' : '#7a7a9a');
+      return `<td style="background:${bg};color:${text}">${v.toFixed(3)}</td>`;
+    }).join('');
+    return `<tr><td>${row.name}</td>${cells}</tr>`;
+  }).join('');
+  table.innerHTML = header + `<tbody>${rows}</tbody>`;
+}
+
+// ── RADAR CHART ──
+function buildRadar() {
+  const toggleContainer = document.getElementById('radarToggles');
+  heatmapData.forEach((row, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'radar-toggle' + (activeRadarIndices.includes(i) ? ' on' : '');
+    btn.style.color = radarPalette[i][1];
+    btn.textContent = row.name.split('|')[1]?.trim() || row.name;
+    btn.dataset.index = i;
+    btn.addEventListener('click', function() {
+      const idx = parseInt(this.dataset.index);
+      if (activeRadarIndices.includes(idx)) {
+        if (activeRadarIndices.length > 1) {
+          activeRadarIndices = activeRadarIndices.filter(x => x !== idx);
+          this.classList.remove('on');
+        }
+      } else {
+        activeRadarIndices.push(idx);
+        this.classList.add('on');
+      }
+      updateRadar();
+    });
+    toggleContainer.appendChild(btn);
+  });
+
+  emotionRadarChart = new Chart(document.getElementById('emotionRadar'), {
+    type: 'radar',
+    data: { labels: emotions, datasets: radarDatasets() },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          min: 0, max: 0.42,
+          ticks: { stepSize: 0.1, backdropColor: 'transparent', font: { size: 10 } },
+          grid: { color: 'rgba(255,255,255,0.08)' },
+          angleLines: { color: 'rgba(255,255,255,0.08)' },
+          pointLabels: { font: { size: 11 }, color: '#b0b0c8' }
+        }
+      },
+      plugins: {
+        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.r.toFixed(3)}` } }
+      }
+    }
+  });
+}
+
+function radarDatasets() {
+  return activeRadarIndices.map(i => ({
+    label: heatmapData[i].name.split(' | ')[1] || heatmapData[i].name,
+    data: heatmapData[i].vals,
+    backgroundColor: radarPalette[i][0],
+    borderColor: radarPalette[i][1],
+    borderWidth: 2,
+    pointBackgroundColor: radarPalette[i][1],
+    pointRadius: 4,
+  }));
+}
+
+function updateRadar() {
+  emotionRadarChart.data.datasets = radarDatasets();
+  emotionRadarChart.update();
+}
+
+// ── CONCERN CHART ──
+function buildConcern() {
+  concernChart = new Chart(document.getElementById('concernChart'), {
+    type: 'bar',
+    data: {
+      labels: concernData.map(d => d.name),
+      datasets: [{
+        label: 'Concern Score',
+        data: concernData.map(d => d.score),
+        backgroundColor: concernData.map(d => d.color + 'aa'),
+        borderColor: concernData.map(d => d.color),
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          max: 110,
+          grid: { color: 'rgba(255,255,255,0.05)' }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { font: { size: 11 } }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.x.toFixed(1)} / 100`,
+            afterLabel: ctx => '  ' + concernData[ctx.dataIndex].headline
+          }
+        }
+      }
+    }
+  });
+}
+
+// ── OVERVIEW CHARTS (lazy-built on first visit) ──
+function buildOverview() {
+  if (donutChart) return;
+
+  donutChart = new Chart(document.getElementById('donutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Business & Economy', 'Education', 'Healthcare'],
+      datasets: [{
+        data: [47, 41, 12],
+        backgroundColor: ['rgba(255,217,61,0.7)', 'rgba(107,203,119,0.7)', 'rgba(255,107,107,0.7)'],
+        borderColor: ['#ffd93d', '#6bcb77', '#ff6b6b'],
+        borderWidth: 2,
+        hoverOffset: 10,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: {
+        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 14 } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}% of headlines` } }
+      }
+    }
+  });
+
+  const scatterPoints = [
+    { domain: 'Healthcare', color: 'rgba(255,107,107,0.8)', border: '#ff6b6b',
+      data: [
+        { x: 91.8, y: 100,  label: 'Cardiovascular' },
+        { x: 62.1, y: 78.4, label: 'General Care' },
+        { x: 68.4, y: 56.1, label: 'Mental Health' },
+      ]},
+    { domain: 'Education', color: 'rgba(107,203,119,0.8)', border: '#6bcb77',
+      data: [
+        { x: 54.3, y: 72.3, label: 'Chatbots' },
+        { x: 41.2, y: 26.9, label: 'Learning' },
+      ]},
+    { domain: 'Business', color: 'rgba(255,217,61,0.8)', border: '#ffd93d',
+      data: [
+        { x: 38.5, y: 27.5, label: 'Jobs/Automation' },
+        { x: 29.7, y: 13.7, label: 'Gov/Regulation' },
+      ]},
+  ];
+
+  scatterChart = new Chart(document.getElementById('scatterChart'), {
+    type: 'scatter',
+    data: {
+      datasets: scatterPoints.map(s => ({
+        label: s.domain,
+        data: s.data,
+        backgroundColor: s.color,
+        borderColor: s.border,
+        pointRadius: 10,
+        pointHoverRadius: 13,
+        borderWidth: 1.5,
+      }))
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          title: { display: true, text: 'Passive Framing (%)', color: '#7a7a9a' },
+          min: 0, max: 100,
+          ticks: { callback: v => v + '%' },
+          grid: { color: 'rgba(255,255,255,0.05)' }
+        },
+        y: {
+          title: { display: true, text: 'Concern Score', color: '#7a7a9a' },
+          min: 0, max: 110,
+          grid: { color: 'rgba(255,255,255,0.05)' }
+        }
+      },
+      plugins: {
+        legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'circle', padding: 16 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const pt = scatterPoints[ctx.datasetIndex].data[ctx.dataIndex];
+              return ` ${ctx.dataset.label} – ${pt.label}: passive ${pt.x}%, concern ${pt.y}`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ── TABS ──
+function switchTab(name) {
+  document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.demo-panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  if (name === 'overview') buildOverview();
+}
+
+// ── CLASSIFIER ──
 const classifierRules = [
   { keywords:['diagnos','cancer','cardiovascular','heart','patient','hospital','medical','surgery','therapy','mental health'],
     cluster:'🏥 Healthcare', color:'#ff6b6b',
@@ -836,128 +1189,31 @@ const classifierRules = [
     concernRange:[14,28] },
 ];
 
-// ── BUILD AGENCY BARS ──
-function buildAgency() {
-  const container = document.getElementById('agencyBars');
-  agencyData.forEach(row => {
-    const div = document.createElement('div');
-    div.className = 'agency-row';
-    div.innerHTML = `
-      <div class="agency-label">${row.label}</div>
-      <div class="agency-bar-wrap">
-        <div class="agency-bar-passive" style="width:0%" data-target="${row.passive}%">${row.passive}%</div>
-        <div class="agency-bar-active" style="width:0%" data-target="${row.active}%">${row.active}%</div>
-      </div>`;
-    container.appendChild(div);
-  });
-  setTimeout(() => {
-    document.querySelectorAll('.agency-bar-passive,.agency-bar-active').forEach(el => {
-      el.style.width = el.dataset.target;
-    });
-  }, 100);
-}
-
-// ── BUILD HEATMAP ──
-function buildHeatmap() {
-  const table = document.getElementById('heatmapTable');
-  const allVals = heatmapData.flatMap(r => r.vals);
-  const max = Math.max(...allVals);
-  const min = Math.min(...allVals);
-  const norm = v => (v - min) / (max - min);
-
-  const header = `<thead><tr><th>Sub-Topic</th>${emotions.map(e=>`<th>${e}</th>`).join('')}</tr></thead>`;
-  const rows = heatmapData.map(row => {
-    const cells = row.vals.map((v,i) => {
-      const n = norm(v);
-      // deep red for fear (col0), teal for trust (col1), gold for anticipation (col2)
-      const colors = ['255,107,107','126,232,200','255,184,108','200,150,220','107,203,119','255,107,107','200,200,120','150,150,200'];
-      const bg = `rgba(${colors[i]},${0.1 + n*0.7})`;
-      const text = n > 0.55 ? '#0a0a0f' : (n > 0.3 ? '#e8e8f0' : '#7a7a9a');
-      return `<td style="background:${bg};color:${text}">${v.toFixed(3)}</td>`;
-    }).join('');
-    return `<tr><td>${row.name}</td>${cells}</tr>`;
-  }).join('');
-  table.innerHTML = header + `<tbody>${rows}</tbody>`;
-}
-
-// ── BUILD CONCERN ──
-function buildConcern() {
-  const container = document.getElementById('concernViz');
-  concernData.forEach(row => {
-    const pct = (row.score / 100 * 90) + '%'; // scale to 90% max for aesthetics
-    const div = document.createElement('div');
-    div.className = 'concern-row';
-    div.innerHTML = `
-      <div class="concern-row-label">${row.name}<span>${row.headline}</span></div>
-      <div class="concern-bar-track">
-        <div class="concern-bar-fill" style="width:0%;background:${row.color}" data-target="${pct}">${row.score.toFixed(1)}</div>
-      </div>`;
-    container.appendChild(div);
-  });
-  setTimeout(() => {
-    document.querySelectorAll('.concern-bar-fill').forEach(el => {
-      el.style.width = el.dataset.target;
-    });
-  }, 100);
-}
-
-// ── TABS ──
-function switchTab(name) {
-  document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.demo-panel').forEach(p => p.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById('panel-' + name).classList.add('active');
-
-  if(name === 'agency') animateAgency();
-  if(name === 'concern') animateConcern();
-}
-
-function animateAgency() {
-  document.querySelectorAll('.agency-bar-passive,.agency-bar-active').forEach(el => {
-    el.style.width = '0%';
-    setTimeout(()=>{ el.style.width = el.dataset.target; }, 50);
-  });
-}
-function animateConcern() {
-  document.querySelectorAll('.concern-bar-fill').forEach(el => {
-    el.style.width = '0%';
-    setTimeout(()=>{ el.style.width = el.dataset.target; }, 50);
-  });
-}
-
-// ── CLASSIFIER ──
 function setSample(el) {
   document.getElementById('headlineInput').value = el.textContent;
 }
 
 function classifyHeadline() {
   const input = document.getElementById('headlineInput').value.trim();
-  if(!input) return;
-
+  if (!input) return;
   const lower = input.toLowerCase();
-  let match = null;
-  let maxScore = 0;
-
+  let match = null, maxScore = 0;
   classifierRules.forEach(rule => {
     const score = rule.keywords.filter(kw => lower.includes(kw)).length;
-    if(score > maxScore) { maxScore = score; match = rule; }
+    if (score > maxScore) { maxScore = score; match = rule; }
   });
-
   const result = document.getElementById('classifyResult');
-
-  if(!match || maxScore === 0) {
+  if (!match || maxScore === 0) {
     result.className = 'classifier-result show';
     result.innerHTML = `<div class="result-cluster">❓ Unclear Domain</div>
       <p style="color:var(--muted);font-size:0.85rem;">This headline doesn't clearly map to Healthcare, Education, or Business & Economy. It may be about AI infrastructure, geopolitics, or general AI commentary.</p>`;
     return;
   }
-
   const framing = match.getFraming(input);
   const concernScore = Math.round(match.concernRange[0] + Math.random()*(match.concernRange[1]-match.concernRange[0]));
   const framingTag = framing === 'passive'
     ? `<span class="result-tag tag-passive">Passive Framing</span>`
     : `<span class="result-tag tag-active">Active Framing</span>`;
-
   result.className = 'classifier-result show';
   result.innerHTML = `
     <div class="result-cluster" style="color:${match.color}">${match.cluster}</div>
@@ -974,13 +1230,14 @@ function classifyHeadline() {
 }
 
 document.getElementById('headlineInput').addEventListener('keydown', e => {
-  if(e.key === 'Enter') classifyHeadline();
+  if (e.key === 'Enter') classifyHeadline();
 });
 
 // ── INIT ──
 buildAgency();
 buildHeatmap();
 buildConcern();
+buildRadar();
 </script>
 </body>
 </html>
